@@ -65,7 +65,7 @@ def exec(*cmd, **kwargs):
         raise RuntimeError(exc.stderr)
     else:
         return proc.stdout.decode().strip()
-    
+
 
 async def ekwait(ekresource, name, namespace, predicate):
     """
@@ -140,11 +140,11 @@ class ObjectGraph:
             ref["uid"]
             for ref in obj.metadata.get("ownerReferences", [])
         )
-    
+
     def __iter__(self):
         """
         Iterate over the graph.
-        
+
         Objects are only yielded once all their owners have been yielded.
         """
         seen, pending = set(), set(self.nodes.keys())
@@ -282,7 +282,7 @@ def kind_cluster():
         ek_client = easykube.Configuration.from_kubeconfig(kubeconfig.name).async_client()
 
         yield helm_client, ek_client
-        
+
         # If the task executes without error, tear down the kind cluster
         # If not, we leave it behind for debugging
         exec("kind", "delete", "cluster")
@@ -593,6 +593,10 @@ async def bootstrap(cluster):
             "--secret-file", credentials_path,
             "--sealed-secret-file", credentials_path
         )
+        # Install any post-bootstrap components
+        post_bootstrap_path = path / "post-bootstrap"
+        if post_bootstrap_path.exists:
+            await kustomize_install(ek_capi, post_bootstrap_path)
         # Commit and push the changes to the remote
         exec("git", "add", path)
         exec("git", "commit", "-m", f"Bootstrap cluster - {cluster}")

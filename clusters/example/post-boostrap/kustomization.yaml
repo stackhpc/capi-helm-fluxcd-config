@@ -1,0 +1,5 @@
+# Additional components to install on CAPI cluster
+resources:
+  - ../../../components/cert-manager/issuers.yaml
+  # - ../../../components/app-1
+  # - ../../../components/app-2
