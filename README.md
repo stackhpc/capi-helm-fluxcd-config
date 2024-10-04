@@ -81,7 +81,7 @@ must then be updated with the following information:
   * The OpenStack auth URL and region, which you can get from your cloud admin
   * The ID and secret of the application credential
   * The ID of the target project in OpenStack
-  
+
 During the bootstrap process, this file will be encrypted using
 [kubeseal](https://github.com/bitnami-labs/sealed-secrets) and pushed to the git repository.
 Be careful to **NEVER** commit the unencrypted version.
