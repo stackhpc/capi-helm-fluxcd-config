@@ -81,7 +81,7 @@ must then be updated with the following information:
   * The OpenStack auth URL and region, which you can get from your cloud admin
   * The ID and secret of the application credential
   * The ID of the target project in OpenStack
-  
+
 During the bootstrap process, this file will be encrypted using
 [kubeseal](https://github.com/bitnami-labs/sealed-secrets) and pushed to the git repository.
 Be careful to **NEVER** commit the unencrypted version.
@@ -134,7 +134,7 @@ and additional cluster config options are described in the corresponding
 [capi-helm-charts documentation](https://github.com/azimuth-cloud/capi-helm-charts/tree/main/charts/openstack-cluster#openid-connect-authentication).
 
 If the `oidc` key is present in the cluster's config map during the bootstrap process, then an additional
-`kubeconfig-oidc` file will be written along side the cluster-admin kubeconfig. Unlike the admin version,
+`kubeconfig-oidc` file will be written alongside the cluster-admin kubeconfig. Unlike the admin version,
 the OIDC kubeconfig can be safely added to git and shared with other cluster users. When another user passes
 this kubeconfig to `kubectl` a browser window will be opened to allow them to sign in to the configured OIDC
 provider and be granted access to the cluster.
