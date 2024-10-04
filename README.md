@@ -81,7 +81,7 @@ must then be updated with the following information:
   * The OpenStack auth URL and region, which you can get from your cloud admin
   * The ID and secret of the application credential
   * The ID of the target project in OpenStack
-  
+
 During the bootstrap process, this file will be encrypted using
 [kubeseal](https://github.com/bitnami-labs/sealed-secrets) and pushed to the git repository.
 Be careful to **NEVER** commit the unencrypted version.
@@ -118,11 +118,26 @@ to the git repository.
 
 ## Accessing the cluster
 
-The bootstrap process produces a `kubeconfig` file that can be used to access the cluster, which
-is written into the directory containing the cluster configuration.
+The bootstrap process produces a cluster-admin `kubeconfig` file that can be used to access the cluster,
+which is written into the directory containing the cluster configuration.
 
 > **WARNING**
 >
 > The `kubeconfig` file is **NOT** committed to git, and if lost is difficult to recover.
 >
 > It should be stored somewhere safe where it can be shared with team members who need it.
+
+Alternatively, authenticating with the cluster's Kubernetes API server via OIDC is also supported.
+The `example` cluster config includes the minimum required cluster configuration (issuer URL, client ID
+and a ClusterRoleBinding definition) for this integration. The required configuration for the OIDC provider
+and additional cluster config options are described in the corresponding
+[capi-helm-charts documentation](https://github.com/azimuth-cloud/capi-helm-charts/tree/main/charts/openstack-cluster#openid-connect-authentication).
+
+If the `oidc` key is present in the cluster's config map during the bootstrap process, then an additional
+`kubeconfig-oidc` file will be written alongside the cluster-admin kubeconfig. Unlike the admin version,
+the OIDC kubeconfig can be safely added to git and shared with other cluster users. When another user passes
+this kubeconfig to `kubectl` a browser window will be opened to allow them to sign in to the configured OIDC
+provider and be granted access to the cluster.
+
+If a new OIDC kubeconfig needs to be generated after initial cluster bootstrap then the provided
+`bin/generate-oidc-kubeconfig.sh` script may be used directly.

@@ -24,6 +24,10 @@ data:
         machineFlavor: "<flavor id>"
         machineCount: 3
 
+    # oidc:
+    #   issuerUrl: https://keycloak.example.com/realm/realm-name
+    #   clientId: my-k8s-auth-client
+
     addons:
       # Use the cilium CNI
       cni:
@@ -40,3 +44,26 @@ data:
         enabled: false
       mellanoxNetworkOperator:
         enabled: false
+
+      # custom:
+      #   # Use a custom addon to manage OIDC RBAC rules
+      #   oidc-rbac:
+      #     kind: Manifests
+      #     spec:
+      #       namespace: oidc-system
+      #       manifests:
+      #         # Example of mapping OIDC group named 'admins' to
+      #         # the Kubernetes cluster-admin role.
+      #         oidc-cluster-admin.yaml: |
+      #           apiVersion: rbac.authorization.k8s.io/v1
+      #           kind: ClusterRoleBinding
+      #           metadata:
+      #             name: oidc-cluster-admin
+      #           subjects:
+      #             - apiGroup: rbac.authorization.k8s.io
+      #               kind: Group
+      #               name: oidc:admins
+      #           roleRef:
+      #             apiGroup: rbac.authorization.k8s.io
+      #             kind: ClusterRole
+      #             name: cluster-admin
