@@ -25,7 +25,7 @@ K8S_HOST=$(kubectl get cluster -n $NAMESPACE $CLUSTER_RELEASE_NAME -o go-templat
 K8S_PORT=$(kubectl get cluster -n $NAMESPACE $CLUSTER_RELEASE_NAME -o go-template='{{.spec.controlPlaneEndpoint.port}}')
 CADATA=$(kubectl get secret -n $NAMESPACE $CLUSTER_RELEASE_NAME-ca -o go-template='{{index .data "tls.crt"}}')
 
-cat << EOF > clusters/$CLUSTER/kubeconfig-oidc.yaml
+cat << EOF > clusters/$CLUSTER/kubeconfig-oidc
 apiVersion: v1
 kind: Config
 clusters:
