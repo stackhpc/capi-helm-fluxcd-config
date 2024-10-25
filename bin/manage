@@ -377,6 +377,34 @@ def fetch_helm_release_info(path, name, namespace):
     )
 
 
+def read_cluster_config(cluster):
+    """
+    Reads the cluster config from the config
+    map and returns it as a Python dict.
+    """
+    path = resolve_cluster(cluster) / "configmap.yaml"
+    with open(path, "r") as file:
+        config_map = yaml.safe_load(file)
+        return yaml.safe_load(config_map["data"]["values.yaml"])
+
+
+def build_oidc_kubeconfig(cluster, cluster_config):
+    """
+    Extracts the required OIDC config from the cluster config map
+    and then runs bin/generate-oidc-kubeconfig.sh
+    """
+    issuer_url = cluster_config.get('oidc', {}).get("issuerUrl")
+    assert issuer_url, "OIDC kubeconfig support requires oidc.issuerUrl to be set in cluster config"
+    client_id = cluster_config.get('oidc', {}).get("clientId")
+    assert client_id, "OIDC kubeconfig support requires oidc.clientId to be set in cluster config"
+    exec(
+        "./bin/generate-oidc-kubeconfig.sh",
+        cluster,
+        issuer_url,
+        client_id
+    )
+
+
 async def bootstrap_flux(helm_client):
     """
     Bootstraps Flux on the cluster targetted by the given clients.
@@ -676,7 +704,6 @@ async def teardown(cluster):
         await move_capi_resources(ek_capi, ek_kind, "capi-self")
         # Delete the cluster
         await delete_cluster(ek_kind, "capi-self")
-
 
 if __name__ == "__main__":
     manage()
