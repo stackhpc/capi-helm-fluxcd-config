@@ -1,3 +1,9 @@
 .python-version
 .venv
 kubeconfig
+.vscode
+**/.DS_Store
+
+# Don't track unsealed credentials files
+clusters/*/credentials.yaml
+!clusters/example/credentials.yaml
