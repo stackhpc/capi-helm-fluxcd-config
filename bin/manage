@@ -29,7 +29,7 @@ import easykube
 import pyhelm3
 
 
-logging.basicConfig(format = "[%(levelname)-7s] %(message)s", level = logging.INFO)
+logging.basicConfig(format="[%(levelname)-7s] %(message)s", level=logging.INFO)
 
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent
@@ -60,7 +60,7 @@ def exec(*cmd, **kwargs):
     log_formatted_command = shlex.join(log_format_arg(part) for part in cmd)
     logger.info("running command: %s", log_formatted_command)
     try:
-        proc = subprocess.run(cmd, check = True, capture_output = True)
+        proc = subprocess.run(cmd, check=True, capture_output=True)
     except subprocess.CalledProcessError as exc:
         raise RuntimeError(exc.stderr)
     else:
@@ -72,7 +72,7 @@ async def ekwait(ekresource, name, namespace, predicate):
     Wait for a Kubernetes resource to fulfil a predicate.
     """
     while True:
-        obj = await ekresource.fetch(name, namespace = namespace)
+        obj = await ekresource.fetch(name, namespace=namespace)
         if predicate(obj):
             break
         await asyncio.sleep(5)
@@ -123,6 +123,7 @@ class ObjectGraph:
 
     Each node is a Kubernetes object and the edges are derived from the owner references.
     """
+
     def __init__(self):
         # The objects in the tree indexed by their UID
         self.nodes = {}
@@ -166,7 +167,7 @@ async def get_cluster_graph(ek_client, namespace):
     # Start by adding secrets and configmaps to the tree
     # We respect secrets that are owner by the CAPI cluster or the Helm release
     eksecrets = await ek_client.api("v1").resource("secrets")
-    async for secret in eksecrets.list(namespace = namespace):
+    async for secret in eksecrets.list(namespace=namespace):
         # If the secret is owned by a sealed secret, drop the owner reference
         if "ownerReferences" in secret.metadata:
             secret.metadata["ownerReferences"] = [
@@ -183,7 +184,7 @@ async def get_cluster_graph(ek_client, namespace):
             if "/" in resource["name"]:
                 continue
             ekresource = await ekapi.resource(resource["name"])
-            async for obj in ekresource.list(namespace = namespace):
+            async for obj in ekresource.list(namespace=namespace):
                 graph.add_object(ekresource.api_version, ekresource.kind, obj)
     return graph
 
@@ -202,8 +203,10 @@ def prepare_object(obj, new_uids):
             ref["uid"] = new_uids[ref["uid"]]
     # Remove kopf annotations from the addon objects
     if "annotations" in new_obj["metadata"]:
-        new_obj["metadata"]["annotations"].pop("addons.stackhpc.com/kopf-managed", None)
-        new_obj["metadata"]["annotations"].pop("addons.stackhpc.com/last-handled-configuration", None)
+        new_obj["metadata"]["annotations"].pop(
+            "addons.stackhpc.com/kopf-managed", None)
+        new_obj["metadata"]["annotations"].pop(
+            "addons.stackhpc.com/last-handled-configuration", None)
     # Discard the status, if one exists
     new_obj.pop("status", None)
     return new_obj
@@ -216,7 +219,7 @@ async def move_capi_resources(ek_from, ek_to, namespace):
     # Pause the clusters on the from side
     ekcapi = await ek_from.api_preferred_version("cluster.x-k8s.io")
     ekclusters = await ekcapi.resource("clusters")
-    async for cluster in ekclusters.list(namespace = namespace):
+    async for cluster in ekclusters.list(namespace=namespace):
         await ekclusters.patch(
             cluster["metadata"]["name"],
             {
@@ -224,7 +227,7 @@ async def move_capi_resources(ek_from, ek_to, namespace):
                     "paused": True,
                 },
             },
-            namespace = namespace
+            namespace=namespace
         )
 
     # Get a graph of all the Kubernetes objects relating to the cluster
@@ -249,7 +252,7 @@ async def move_capi_resources(ek_from, ek_to, namespace):
     # Resume the clusters on the destination side
     ekcapi = await ek_to.api_preferred_version("cluster.x-k8s.io")
     ekclusters = await ekcapi.resource("clusters")
-    async for cluster in ekclusters.list(namespace = namespace):
+    async for cluster in ekclusters.list(namespace=namespace):
         await ekclusters.json_patch(
             cluster["metadata"]["name"],
             [
@@ -258,7 +261,7 @@ async def move_capi_resources(ek_from, ek_to, namespace):
                     "path": "/spec/paused",
                 },
             ],
-            namespace = namespace
+            namespace=namespace
         )
 
 
@@ -275,7 +278,8 @@ def kind_cluster():
 
         stdout = exec("kind", "get", "clusters")
         if any(line.strip() == kind_cluster_name for line in stdout.splitlines()):
-            exec("kind", "export", "kubeconfig", "--kubeconfig", kubeconfig.name)
+            exec("kind", "export", "kubeconfig",
+                 "--kubeconfig", kubeconfig.name)
         else:
             exec(
                 "kind",
@@ -287,8 +291,9 @@ def kind_cluster():
                 f"kindest/node:{kind_cluster_version}"
             )
 
-        helm_client = pyhelm3.Client(kubeconfig = kubeconfig.name)
-        ek_client = easykube.Configuration.from_kubeconfig(kubeconfig.name).async_client()
+        helm_client = pyhelm3.Client(kubeconfig=kubeconfig.name)
+        ek_client = easykube.Configuration.from_kubeconfig(
+            kubeconfig.name).async_client()
 
         yield helm_client, ek_client, kubeconfig.name
 
@@ -351,18 +356,20 @@ def fetch_helm_release_info(path, name, namespace):
     resources = list(yaml.safe_load_all(exec("kustomize", "build", path)))
     release = find_resource(resources, "HelmRelease", name, namespace)
     chart_ref = release["spec"]["chartRef"]
-    chart = find_resource(resources, chart_ref["kind"], chart_ref["name"], namespace)
+    chart = find_resource(
+        resources, chart_ref["kind"], chart_ref["name"], namespace)
     source_ref = chart["spec"]["sourceRef"]
-    repo = find_resource(resources, source_ref["kind"], source_ref["name"], namespace)
+    repo = find_resource(
+        resources, source_ref["kind"], source_ref["name"], namespace)
     return HelmReleaseInfo(
-        name = release["spec"]["releaseName"],
-        namespace = release["spec"].get("targetNamespace", namespace),
-        chart = HelmChartInfo(
-            name = chart["spec"]["chart"],
-            repo = repo["spec"]["url"],
-            version = chart["spec"]["version"]
+        name=release["spec"]["releaseName"],
+        namespace=release["spec"].get("targetNamespace", namespace),
+        chart=HelmChartInfo(
+            name=chart["spec"]["chart"],
+            repo=repo["spec"]["url"],
+            version=chart["spec"]["version"]
         ),
-        values = [
+        values=[
             extract_values(
                 find_resource(
                     resources,
@@ -391,13 +398,14 @@ async def bootstrap_flux(helm_client):
         release_info.name,
         await helm_client.get_chart(
             release_info.chart.name,
-            repo = release_info.chart.repo,
-            version = release_info.chart.version
+            repo=release_info.chart.repo,
+            version=release_info.chart.version
         ),
         *release_info.values,
-        namespace = release_info.namespace,
-        wait = True
+        namespace=release_info.namespace,
+        wait=True
     )
+
 
 async def bootstrap_sealed_secrets(ek_client, path, kubeconfig_path):
     """
@@ -419,6 +427,7 @@ async def bootstrap_sealed_secrets(ek_client, path, kubeconfig_path):
         "--sealed-secret-file", sealed_credentials_path,
     )
 
+
 async def kustomize_install(ek_client, path):
     """
     Builds the given path using kustomize and installs the resulting objects.
@@ -434,7 +443,7 @@ async def wait_for_helm_releases(ek_client):
     await ekwait_all(
         ekresource,
         has_condition("Ready", "True"),
-        all_namespaces = True
+        all_namespaces=True
     )
 
 
@@ -450,7 +459,7 @@ async def wait_for_capi_providers(ek_client):
         "infrastructureproviders",
     ]:
         ekresource = await ekapi.resource(resource)
-        await ekwait_all(ekresource, has_condition("Ready", "True"), all_namespaces = True)
+        await ekwait_all(ekresource, has_condition("Ready", "True"), all_namespaces=True)
 
 
 async def wait_for_cluster(ek_client, namespace):
@@ -465,7 +474,7 @@ async def wait_for_cluster(ek_client, namespace):
     await ekwait_all(
         ekclusters,
         has_condition("Ready", "True"),
-        namespace = namespace
+        namespace=namespace
     )
 
     # Wait for all the machine deployments to become ready
@@ -473,7 +482,7 @@ async def wait_for_cluster(ek_client, namespace):
     await ekwait_all(
         ekmds,
         has_condition("MachineSetReady", "True"),
-        namespace = namespace
+        namespace=namespace
     )
 
     # Wait for all the addons to become ready
@@ -482,20 +491,20 @@ async def wait_for_cluster(ek_client, namespace):
     await ekwait_all(
         ekmanifests,
         has_prop(["status", "phase"], "Deployed"),
-        namespace = namespace
+        namespace=namespace
     )
     ekhelmreleases = await ekaddons.resource("helmreleases")
     await ekwait_all(
         ekhelmreleases,
         has_prop(["status", "phase"], "Deployed"),
-        namespace = namespace
+        namespace=namespace
     )
 
     # Return the kubeconfig for the first CAPI cluster in the namespace
-    cluster = await ekclusters.first(namespace = namespace)
+    cluster = await ekclusters.first(namespace=namespace)
     name = cluster["metadata"]["name"]
     eksecrets = await ek_client.api("v1").resource("secrets")
-    capi_kubeconfig = await eksecrets.fetch(f"{name}-kubeconfig", namespace = namespace)
+    capi_kubeconfig = await eksecrets.fetch(f"{name}-kubeconfig", namespace=namespace)
     return base64.b64decode(capi_kubeconfig.data["value"])
 
 
@@ -507,8 +516,13 @@ def fetch_git_info():
     # Check if the origin is an SSH URL
     # If it is, we need to correct the format for Flux
     if re.search("^https?://", origin) is None:
-        origin = "ssh://{}".format("/".join(origin.rsplit(":", maxsplit = 1)))
-    branch = exec("git", "branch", "--show-current")
+        origin = "ssh://{}".format("/".join(origin.rsplit(":", maxsplit=1)))
+     # Get the current branch based on Git version
+    try:
+        branch = exec("git", "branch", "--show-current")
+    except RuntimeError:
+        # Fallback to older Git versions
+        branch = exec("git", "rev-parse", "--abbrev-ref", "HEAD")
     return origin, branch
 
 
@@ -519,8 +533,10 @@ def generate_ssh_keypair():
     """
     private_key = Ed25519PrivateKey.generate()
     public_key = private_key.public_key()
-    public_bytes = public_key.public_bytes(Encoding.OpenSSH, PublicFormat.OpenSSH)
-    private_bytes = private_key.private_bytes(Encoding.PEM, PrivateFormat.OpenSSH, NoEncryption())
+    public_bytes = public_key.public_bytes(
+        Encoding.OpenSSH, PublicFormat.OpenSSH)
+    private_bytes = private_key.private_bytes(
+        Encoding.PEM, PrivateFormat.OpenSSH, NoEncryption())
     with tempfile.NamedTemporaryFile() as private_key_file:
         private_key_file.write(private_bytes)
         private_key_file.flush()
@@ -533,11 +549,11 @@ async def delete_cluster(ek_client, namespace):
     """
     ekcapi = await ek_client.api_preferred_version("cluster.x-k8s.io")
     ekclusters = await ekcapi.resource("clusters")
-    async for cluster in ekclusters.list(namespace = namespace):
-        await ekclusters.delete(cluster.metadata.name, namespace = namespace)
+    async for cluster in ekclusters.list(namespace=namespace):
+        await ekclusters.delete(cluster.metadata.name, namespace=namespace)
         while True:
             try:
-                await ekclusters.fetch(cluster.metadata.name, namespace = namespace)
+                await ekclusters.fetch(cluster.metadata.name, namespace=namespace)
             except easykube.ApiError as exc:
                 if exc.status_code == 404:
                     break
@@ -597,8 +613,9 @@ async def bootstrap(cluster):
         kubeconfig_capi = path / "kubeconfig"
         with open(kubeconfig_capi, "wb") as fh:
             fh.write(kubeconfig_content)
-        ek_capi = easykube.Configuration.from_kubeconfig(kubeconfig_capi).async_client()
-        helm_capi = pyhelm3.Client(kubeconfig = kubeconfig_capi)
+        ek_capi = easykube.Configuration.from_kubeconfig(
+            kubeconfig_capi).async_client()
+        helm_capi = pyhelm3.Client(kubeconfig=kubeconfig_capi)
         # Bootstrap Flux on the CAPI cluster
         await bootstrap_flux(helm_capi)
         # Bootstrap Cluster API on the CAPI cluster
@@ -631,8 +648,9 @@ async def bootstrap(cluster):
         ]
         if origin.startswith("ssh://"):
             with generate_ssh_keypair() as (public_key, private_key_file):
-                click.echo(click.style("Add the following SSH public key as a deploy key for the repository:", bold = True, fg = "green"))
-                click.echo(click.style(public_key, bold = True, fg = "green"))
+                click.echo(click.style(
+                    "Add the following SSH public key as a deploy key for the repository:", bold=True, fg="green"))
+                click.echo(click.style(public_key, bold=True, fg="green"))
                 click.pause("Press any key to continue")
                 exec(*flux_command, "--private-key-file", private_key_file)
         else:
@@ -663,7 +681,8 @@ async def teardown(cluster):
 
     # Initialise an easykube client using the kubeconfig
     kubeconfig_capi = path / "kubeconfig"
-    ek_capi = easykube.Configuration.from_kubeconfig(kubeconfig_capi).async_client()
+    ek_capi = easykube.Configuration.from_kubeconfig(
+        kubeconfig_capi).async_client()
 
     with kind_cluster() as (helm_kind, ek_kind, _):
         # Bootstrap Flux on the kind cluster
