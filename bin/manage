@@ -464,7 +464,27 @@ async def wait_for_cluster(ek_client, namespace):
     ekclusters = await ekcapi.resource("clusters")
     await ekwait_all(
         ekclusters,
-        has_condition("Ready", "True"),
+        has_condition("Available", "True"),
+        namespace = namespace
+    )
+    await ekwait_all(
+        ekclusters,
+        has_condition("RollingOut", "False"),
+        namespace = namespace
+    )
+    await ekwait_all(
+        ekclusters,
+        has_condition("ControlPlaneMachinesUpToDate", "True"),
+        namespace = namespace
+    )
+    await ekwait_all(
+        ekclusters,
+        has_condition("WorkerMachinesUpToDate", "True"),
+        namespace = namespace
+    )
+    await ekwait_all(
+        ekclusters,
+        has_condition("WorkersAvailable", "True"),
         namespace = namespace
     )
 
@@ -472,7 +492,7 @@ async def wait_for_cluster(ek_client, namespace):
     ekmds = await ekcapi.resource("machinedeployments")
     await ekwait_all(
         ekmds,
-        has_condition("MachineSetReady", "True"),
+        has_condition("Available", "True"),
         namespace = namespace
     )
 

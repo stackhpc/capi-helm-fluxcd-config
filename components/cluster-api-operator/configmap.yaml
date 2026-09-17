@@ -6,15 +6,25 @@ metadata:
   namespace: capi-operator-system
 data:
   values.yaml: |
-    core: capi-system:cluster-api:v1.8.4
-    bootstrap: capi-kubeadm-bootstrap-system:kubeadm:v1.8.4
-    controlPlane: capi-kubeadm-control-plane-system:kubeadm:v1.8.4
-    infrastructure: capo-system:openstack:v0.10.5
-    manager:
-      featureGates:
-        core:
-          MachinePool: false
-          ClusterResourceSet: false
-          ClusterTopology: false
-          RuntimeSDK: false
-          MachineSetPreflightChecks: true
+    core:
+      cluster-api:
+        namespace: capi-system
+        version: v1.14.2
+        manager:
+          featureGates:
+            MachinePool: false
+            ClusterTopology: false
+            RuntimeSDK: false
+            MachineSetPreflightChecks: true
+    bootstrap:
+      kubeadm:
+        namespace: capi-kubeadm-bootstrap-system
+        version: v1.14.2
+    controlPlane:
+      kubeadm:
+        namespace: capi-kubeadm-control-plane-system
+        version: v1.14.2
+    infrastructure:
+      openstack:
+        namespace: capo-system
+        version: v0.14.8
