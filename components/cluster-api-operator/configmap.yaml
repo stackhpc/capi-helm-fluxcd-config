@@ -4,6 +4,8 @@ kind: ConfigMap
 metadata:
   name: cluster-api-operator-config
   namespace: capi-operator-system
+  labels:
+    reconcile.fluxcd.io/watch: Enabled
 data:
   values.yaml: |
     core:
