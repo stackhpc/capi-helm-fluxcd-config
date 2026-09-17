@@ -268,7 +268,7 @@ def kind_cluster():
     Context manager that manages a kind cluster and yields configured Helm and easykube clients.
     """
     kind_cluster_name = os.environ.get("KIND_CLUSTER_NAME", "kind")
-    kind_cluster_version = os.environ.get("KIND_CLUSTER_VERSION", "v1.30.0")
+    kind_cluster_version = os.environ.get("KIND_CLUSTER_VERSION", "v1.36.4")
 
     with tempfile.NamedTemporaryFile() as kubeconfig:
         kubeconfig.close()
