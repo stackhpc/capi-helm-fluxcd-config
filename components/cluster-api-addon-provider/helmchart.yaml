@@ -6,7 +6,7 @@ metadata:
   namespace: capi-addon-system
 spec:
   chart: cluster-api-addon-provider
-  version: 0.7.1
+  version: 0.13.1
   sourceRef:
     kind: HelmRepository
     name: cluster-api-addon-provider
