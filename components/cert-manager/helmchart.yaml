@@ -6,7 +6,7 @@ metadata:
   namespace: cert-manager
 spec:
   chart: cert-manager
-  version: v1.16.1
+  version: v1.21.2
   sourceRef:
     kind: HelmRepository
     name: jetstack

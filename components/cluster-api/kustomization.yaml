@@ -3,3 +3,4 @@ resources:
   - ../cluster-api-operator
   - ../cluster-api-addon-provider
   - ../cluster-api-janitor-openstack
+  - ../openstack-resource-controller

@@ -4,6 +4,8 @@ kind: ConfigMap
 metadata:
   name: flux-config
   namespace: flux-system
+  labels:
+    reconcile.fluxcd.io/watch: Enabled
 data:
   values.yaml: |
     # Install the CRDs

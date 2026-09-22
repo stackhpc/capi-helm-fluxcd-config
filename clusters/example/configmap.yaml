@@ -4,6 +4,8 @@ kind: ConfigMap
 metadata:
   name: cluster-example-config
   namespace: capi-self
+  labels:
+    reconcile.fluxcd.io/watch: Enabled
 data:
   values.yaml: |
     # Must match the name of the (sealed) secret in credentials.yaml
